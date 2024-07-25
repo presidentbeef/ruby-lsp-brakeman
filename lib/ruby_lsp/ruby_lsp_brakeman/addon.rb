@@ -36,6 +36,17 @@ module RubyLsp
       def name
         "Ruby LSP Brakeman"
       end
+
+      def workspace_did_change_watched_files(changes)
+        return unless @brakeman
+
+        changed_files = changes.map { |change| URI(change[:uri]).path }
+
+        rescan = Brakeman.rescan(@brakeman, changed_files)
+
+        $stderr.puts("Rescanned #{changed_files.join(', ')}")
+        $stderr.puts rescan
+      end
     end
   end
 end
