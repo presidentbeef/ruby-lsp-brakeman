@@ -22,6 +22,7 @@ module RubyLsp
         Thread.new do
           @brakeman = Brakeman.run(app_path: global_state.workspace_path, support_rescanning: true)
 
+          @message_queue << Notification.window_log_message("Brakeman ran!")
           $stderr.puts("Ran Brakeman!")
           
           add_warnings(@brakeman.filtered_warnings)
@@ -33,6 +34,30 @@ module RubyLsp
       end
 
       def add_warnings(warnings)
+        warnings.each do |warning|
+          $stderr.puts "Sending #{warning}"
+
+          d = Interface::Diagnostic.new(
+            source: "Brakeman",
+            message: warning.message,
+            severity: Constant::DiagnosticSeverity::WARNING,
+            range: Interface::Range.new(
+              start: Interface::Position.new(
+                line: warning.line - 1,
+                character: 1,
+              ),
+              end: Interface::Position.new(
+                line: warning.line - 1,
+                character: 1000,
+              ),
+            ),
+          )
+
+          @message_queue << Notification.new(
+            method: 'textDocument/publishDiagnostics',
+            params: Interface::PublishDiagnosticsParams.new(uri: URI::Generic.from_path(path: warning.file.absolute), diagnostics: [d])
+          )
+        end
       end
 
       # Performs any cleanup when shutting down the server, like terminating a subprocess
@@ -70,6 +95,8 @@ module RubyLsp
           @brakeman = rescanner.tracker
 
           $stderr.puts("Rescanned #{changed_files.join(', ')}")
+          add_warnings(rescan.new_warnings)
+
           $stderr.puts rescan
         end
       end
