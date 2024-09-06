@@ -33,31 +33,59 @@ module RubyLsp
         $stderr.puts("Activated Ruby LSP Brakeman")
       end
 
+      # Send warnings to the client as diagnostic messages
       def add_warnings(warnings)
         warnings.each do |warning|
           $stderr.puts "Sending #{warning}"
 
-          d = Interface::Diagnostic.new(
-            source: "Brakeman",
-            message: warning.message,
-            severity: Constant::DiagnosticSeverity::WARNING,
-            range: Interface::Range.new(
-              start: Interface::Position.new(
-                line: warning.line - 1,
-                character: 1,
-              ),
-              end: Interface::Position.new(
-                line: warning.line - 1,
-                character: 1000,
-              ),
-            ),
-          )
+          d = warning_to_lsp_diagnostic(warning)
 
           @message_queue << Notification.new(
             method: 'textDocument/publishDiagnostics',
             params: Interface::PublishDiagnosticsParams.new(uri: URI::Generic.from_path(path: warning.file.absolute), diagnostics: [d])
           )
         end
+      end
+
+      def warning_to_lsp_diagnostic(warning)
+        severity = case warning.confidence
+                   when 0 # High
+                     Constant::DiagnosticSeverity::ERROR
+                   when 1 # Medium
+                     Constant::DiagnosticSeverity::WARNING
+                   when 2 # Low
+                     Constant::DiagnosticSeverity::INFORMATION
+                   else # Theoretical other levels
+                     Constant::DiagnosticSeverity::INFORMATION
+                   end
+
+        Interface::Diagnostic.new(
+          source: "Brakeman",
+          message: warning_message(warning),
+          severity: severity,
+          range: Interface::Range.new(
+            start: Interface::Position.new(
+              line: warning.line - 1, # Zero indexed lines
+              character: 0, # "Start of line"
+            ),
+            end: Interface::Position.new(
+              line: warning.line - 1,
+              character: 1000, # "End of line"
+            ),
+          ),
+          code: warning.code,
+          code_description: Interface::CodeDescription.new(href: warning.link)
+        )
+      end
+
+      def warning_message(warning)
+        parts = ["[#{warning.warning_type}] #{warning.message}\n"]
+
+        if warning.user_input
+          parts << "Dangerous value: `#{warning.format_user_input}`"
+        end
+
+        parts.join("\n")
       end
 
       # Performs any cleanup when shutting down the server, like terminating a subprocess
