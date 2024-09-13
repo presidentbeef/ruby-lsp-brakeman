@@ -34,15 +34,19 @@ module RubyLsp
       end
 
       # Send warnings to the client as diagnostic messages
-      def add_warnings(warnings)
-        warnings.each do |warning|
-          $stderr.puts "Sending #{warning}"
+      def add_warnings(warnings, fixed_warnings = [])
+        diagnostics = warnings.group_by do |warning|
+          warning.file.absolute
+        end.each_value do |warnings|
+          warnings.map! do |warning|
+            warning_to_lsp_diagnostic(warning)
+          end
+        end
 
-          d = warning_to_lsp_diagnostic(warning)
-
+        diagnostics.each do |path, diags|
           @message_queue << Notification.new(
             method: 'textDocument/publishDiagnostics',
-            params: Interface::PublishDiagnosticsParams.new(uri: URI::Generic.from_path(path: warning.file.absolute), diagnostics: [d])
+            params: Interface::PublishDiagnosticsParams.new(uri: URI::Generic.from_path(path: path), diagnostics: diags)
           )
         end
       end
