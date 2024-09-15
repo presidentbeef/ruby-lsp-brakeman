@@ -49,6 +49,18 @@ module RubyLsp
             params: Interface::PublishDiagnosticsParams.new(uri: URI::Generic.from_path(path: path), diagnostics: diags)
           )
         end
+
+        fixed_warnings.group_by do |warning|
+          warning.file.absolute
+        end.each do |path, warnings|
+          next if diagnostics[path] # Only clear diagnostics if no warnings for file
+
+          # Otherwise, send empty message for file to clear
+          @message_queue << Notification.new(
+            method: 'textDocument/publishDiagnostics',
+            params: Interface::PublishDiagnosticsParams.new(uri: URI::Generic.from_path(path: path), diagnostics: [])
+          )
+        end
       end
 
       def warning_to_lsp_diagnostic(warning)
@@ -127,7 +139,7 @@ module RubyLsp
           @brakeman = rescanner.tracker
 
           $stderr.puts("Rescanned #{changed_files.join(', ')}")
-          add_warnings(rescan.new_warnings)
+          add_warnings(rescan.all_warnings, rescan.fixed_warnings)
 
           $stderr.puts rescan
         end
