@@ -22,19 +22,23 @@ module RubyLsp
         Thread.new do
           @brakeman = Brakeman.run(app_path: global_state.workspace_path, support_rescanning: true)
 
-          @message_queue << Notification.window_log_message("Brakeman ran!")
-          $stderr.puts("Ran Brakeman!")
+          notify('Initial Brakeman scan complete.')
           
           add_warnings(@brakeman.filtered_warnings)
 
           rescan
         end
 
-        $stderr.puts("Activated Ruby LSP Brakeman")
+        notify('Activated Ruby LSP Brakeman')
       end
 
       # Send warnings to the client as diagnostic messages
       def add_warnings(warnings, fixed_warnings = [])
+
+        # Each "publishDiagnostics" message to the client provides
+        # a list of diagnostic messages per file.
+        # Here we group the warnings by file and convert the warnings
+        # to diagnostics.
         diagnostics = warnings.group_by do |warning|
           warning.file.absolute
         end.each_value do |warnings|
@@ -43,6 +47,7 @@ module RubyLsp
           end
         end
 
+        # Send diagnostics to client, grouped by file
         diagnostics.each do |path, diags|
           @message_queue << Notification.new(
             method: 'textDocument/publishDiagnostics',
@@ -50,6 +55,9 @@ module RubyLsp
           )
         end
 
+        # If a file used to have warnings, but they are now
+        # all fixed, send an empty array to clear old warnings in the
+        # client. Otherwise they can hang around.
         fixed_warnings.group_by do |warning|
           warning.file.absolute
         end.each do |path, warnings|
@@ -63,6 +71,7 @@ module RubyLsp
         end
       end
 
+      # Convert a Brakeman warning to a diagnostic
       def warning_to_lsp_diagnostic(warning)
         severity = case warning.confidence
                    when 0 # High
@@ -90,12 +99,13 @@ module RubyLsp
             ),
           ),
           code: warning.code,
-          code_description: Interface::CodeDescription.new(href: warning.link)
+          code_description: Interface::CodeDescription.new(href: warning.link) # Does not work in VSCode?
         )
       end
 
+      # Format the warning message
       def warning_message(warning)
-        parts = ["[#{warning.warning_type}] #{warning.message}\n"]
+        parts = ["[#{warning.warning_type}] #{warning.message}.\n"]
 
         if warning.user_input
           parts << "Dangerous value: `#{warning.format_user_input}`"
@@ -104,7 +114,6 @@ module RubyLsp
         parts.join("\n")
       end
 
-      # Performs any cleanup when shutting down the server, like terminating a subprocess
       def deactivate
       end
 
@@ -113,36 +122,51 @@ module RubyLsp
         "Ruby LSP Brakeman"
       end
 
+      # When any files change, add them to the queue for rescanning.
       def workspace_did_change_watched_files(changes)
         changed_files = changes.map { |change| URI(change[:uri]).path }
         changed_files.each { |path| @changed_queue << path }
 
 
-        $stderr.puts("Queued #{changed_files.join(', ')}")
+        notify("Queued #{changed_files.join(', ')}")
       end
 
+      # Wait for changed files, then scan them.
+      # Can handle multiple changed files (e.g. if files changed during a scan)
       def rescan
         loop do
+          # Grab the first file off the top of the queue.
+          # Will block until there's a file in the queue.
           first_path = @changed_queue.pop
           changed_files = [first_path]
 
+          # Get the rest of the files from the queue, if any.
           @changed_queue.length.times do
             changed_files << @changed_queue.pop
           end
 
           changed_files.uniq!
 
-          $stderr.puts("Rescanning #{changed_files.join(', ')}")
+          notify("Rescanning #{changed_files.join(', ')}")
 
+          # Rescan the changed files
           rescanner = Brakeman::Rescanner.new(@brakeman.options, @brakeman.processor, changed_files)
           rescan = rescanner.recheck
           @brakeman = rescanner.tracker
 
-          $stderr.puts("Rescanned #{changed_files.join(', ')}")
+          notify("Rescanned #{changed_files.join(', ')}")
+
+          # Send new/fixed warning information to the client
           add_warnings(rescan.all_warnings, rescan.fixed_warnings)
 
-          $stderr.puts rescan
+          # Log the results
+          notify(rescan)
         end
+      end
+
+      # Send logging information to the client
+      def notify(message)
+        @message_queue << Notification.window_log_message("[Brakeman] #{message.to_s}")
       end
     end
   end
