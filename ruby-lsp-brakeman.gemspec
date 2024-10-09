@@ -16,6 +16,6 @@ Gem::Specification.new do |s|
     "source_code_uri"   => "https://github.com/presidentbeef/ruby-lsp-brakeman",
   }
 
-  s.add_dependency("ruby-lsp", "~> 0.17.0")
+  s.add_dependency("ruby-lsp", "~> 0.19.0")
   s.add_dependency("brakeman-lib", "~> 6.2.0")
 end
