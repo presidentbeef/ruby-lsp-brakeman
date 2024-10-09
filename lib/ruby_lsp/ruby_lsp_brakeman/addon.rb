@@ -8,6 +8,23 @@ require "thread"
 module RubyLsp
   module MyGem
     class Addon < ::RubyLsp::Addon
+      FILE_GLOBS = [
+        '**/brakeman.yaml',
+        '**/brakeman.yml',
+        '**/*.html.erb',
+        '**/*.js.erb',
+        '**/*.html.haml',
+        '**/*.html.slim',
+        '**/*.rhtml',
+        '**/Gemfile',
+        '**/Gemfile.lock',
+        '**/gems.rb',
+        '**/gems.locked',
+        '**/*.gemspec',
+        '**/.ruby-version',
+      ]
+
+
       def initialize
         super
 
@@ -29,7 +46,38 @@ module RubyLsp
           rescan
         end
 
+        register_additional_file_watchers(global_state, message_queue)
+
         notify('Activated Ruby LSP Brakeman')
+      end
+
+      # Watch additional files, not just *.rb
+      def register_additional_file_watchers(global_state, message_queue)
+        # Clients are not required to implement this capability
+        return unless global_state.supports_watching_files
+
+        watchers = FILE_GLOBS.map do |pattern|
+          Interface::FileSystemWatcher.new(
+            glob_pattern: pattern,
+            kind: Constant::WatchKind::CREATE | Constant::WatchKind::CHANGE | Constant::WatchKind::DELETE
+          )
+        end
+
+        message_queue << Request.new(
+          id: "ruby-lsp-brakeman-file-watcher",
+          method: "client/registerCapability",
+          params: Interface::RegistrationParams.new(
+            registrations: [
+              Interface::Registration.new(
+                id: "workspace/didChangeWatchedFilesMyGem",
+                method: "workspace/didChangeWatchedFiles",
+                register_options: Interface::DidChangeWatchedFilesRegistrationOptions.new(
+                  watchers: watchers,
+                ),
+              ),
+            ],
+          ),
+        )
       end
 
       # Send warnings to the client as diagnostic messages
