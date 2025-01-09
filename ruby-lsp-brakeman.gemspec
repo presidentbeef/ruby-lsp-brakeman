@@ -10,12 +10,12 @@ Gem::Specification.new do |s|
 
   s.files = Dir['lib/**/*']
   s.license = 'MIT'
-  s.required_ruby_version = '>= 3.0.0'
+  s.required_ruby_version = '>= 3.1.0'
 
   s.metadata = {
     'source_code_uri' => 'https://github.com/presidentbeef/ruby-lsp-brakeman'
   }
 
-  s.add_dependency('brakeman-lib', '~> 7.0.0')
+  s.add_dependency('brakeman', '~> 7.0.0')
   s.add_dependency('ruby-lsp', '>=0.19.0')
 end
