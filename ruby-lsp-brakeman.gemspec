@@ -4,6 +4,7 @@ Gem::Specification.new do |s|
 
   s.authors = ['Justin Collins']
   s.email = 'gem@brakeman.org'
+  s.homepage = 'https://github.com/presidentbeef/ruby-lsp-brakeman'
 
   s.summary = 'Run Brakeman via Ruby Language Server'
   s.description = 'Brakeman detects security vulnerabilities in Ruby on Rails applications via static analysis.'
@@ -17,5 +18,5 @@ Gem::Specification.new do |s|
   }
 
   s.add_dependency('brakeman', '~> 7.0.0')
-  s.add_dependency('ruby-lsp', '>=0.19.0')
+  s.add_dependency('ruby-lsp', '~>0.19')
 end
