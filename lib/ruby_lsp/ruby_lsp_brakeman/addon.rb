@@ -43,7 +43,7 @@ module RubyLsp
         Thread.new do
           @brakeman = Brakeman.run(app_path: global_state.workspace_path, support_rescanning: true)
 
-          notify('Initial Brakeman scan complete.')
+          notify("Initial Brakeman scan complete - #{@brakeman.filtered_warnings.length} warnings found")
 
           add_warnings(@brakeman.filtered_warnings)
 
@@ -52,7 +52,7 @@ module RubyLsp
 
         register_additional_file_watchers(global_state, message_queue)
 
-        notify('Activated Ruby LSP Brakeman')
+        notify('Activated Ruby LSP Brakeman, running initial scan')
       end
 
       # Watch additional files, not just *.rb
