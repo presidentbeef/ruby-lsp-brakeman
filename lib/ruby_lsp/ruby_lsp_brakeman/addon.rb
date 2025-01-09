@@ -6,7 +6,7 @@ require "ruby_lsp/addon"
 require "thread"
 
 module RubyLsp
-  module MyGem
+  module BrakemanLsp
     class Addon < ::RubyLsp::Addon
       FILE_GLOBS = [
         '**/brakeman.yaml',
@@ -23,7 +23,6 @@ module RubyLsp
         '**/*.gemspec',
         '**/.ruby-version',
       ]
-
 
       def initialize
         super
