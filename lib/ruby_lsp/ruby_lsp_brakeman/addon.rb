@@ -35,11 +35,16 @@ module RubyLsp
       def activate(global_state, message_queue)
         @message_queue = message_queue
 
+        unless Brakeman.respond_to?(:run)
+          notify('Failed to activate Ruby LSP Brakeman')
+          return
+        end
+
         Thread.new do
           @brakeman = Brakeman.run(app_path: global_state.workspace_path, support_rescanning: true)
 
           notify('Initial Brakeman scan complete.')
-          
+
           add_warnings(@brakeman.filtered_warnings)
 
           rescan
