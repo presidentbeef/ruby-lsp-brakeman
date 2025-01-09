@@ -212,7 +212,7 @@ module RubyLsp
           add_warnings(rescan.all_warnings, rescan.fixed_warnings)
 
           # Log the results
-          notify(rescan)
+          notify("Warnings: #{rescan.new_warnings.length} new, #{rescan.fixed_warnings.length} fixed, #{rescan.all_warnings.length} total")
         end
       end
 
