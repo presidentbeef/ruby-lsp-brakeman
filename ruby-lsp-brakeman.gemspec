@@ -17,5 +17,5 @@ Gem::Specification.new do |s|
   }
 
   s.add_dependency('brakeman-lib', '~> 7.0.0')
-  s.add_dependency('ruby-lsp', '~> 0.19.0')
+  s.add_dependency('ruby-lsp', '>=0.19.0')
 end
