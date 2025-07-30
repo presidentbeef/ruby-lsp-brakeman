@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'ruby-lsp-brakeman'
-  s.version = '0.0.1'
+  s.version = '0.0.2'
 
   s.authors = ['Justin Collins']
   s.email = 'gem@brakeman.org'
@@ -17,6 +17,6 @@ Gem::Specification.new do |s|
     'source_code_uri' => 'https://github.com/presidentbeef/ruby-lsp-brakeman'
   }
 
-  s.add_dependency('brakeman', '~> 7.0.0')
+  s.add_dependency('brakeman', '~> 7.0')
   s.add_dependency('ruby-lsp', '~>0.19')
 end
