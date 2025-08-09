@@ -41,12 +41,7 @@ module RubyLsp
         end
 
         @thread = Thread.new do
-          begin
-            @brakeman = Brakeman.run(app_path: global_state.workspace_path, support_rescanning: true)
-          rescue Brakeman::NoApplication
-            # Fallback to force_scan: true if it’s not a Rails application or when running tests.
-            @brakeman = Brakeman.run(app_path: global_state.workspace_path, support_rescanning: true, force_scan: true)
-          end
+          @brakeman = Brakeman.run(app_path: global_state.workspace_path, support_rescanning: true)
 
           notify("Initial Brakeman scan complete - #{@brakeman.filtered_warnings.length} warnings found")
 

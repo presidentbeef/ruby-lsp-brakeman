@@ -12,6 +12,22 @@ module Minitest
   class Test
     include RubyLsp::TestHelper
 
+    def setup
+      @config_path = File.join(File.expand_path("..", __dir__), "config", "brakeman.yml")
+      unless File.exist?(@config_path)
+        FileUtils.mkdir_p(File.dirname(@config_path))
+        File.write(@config_path, <<~YAML)
+          ---
+          force_scan: true
+        YAML
+        @config_file_created = true
+      end
+    end
+
+    def teardown
+      File.delete(@config_path) if @config_file_created && File.exist?(@config_path)
+    end
+
     def pop_diagnostic(server)
       result = server.pop_response
       result = server.pop_response until result.is_a?(RubyLsp::Notification) && result.method == 'textDocument/publishDiagnostics'
