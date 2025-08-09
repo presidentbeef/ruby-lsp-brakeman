@@ -21,6 +21,12 @@ module Minitest
           force_scan: true
         YAML
         @config_file_created = true
+      else
+        require 'yaml'
+        options = YAML.safe_load_file @config_path, permitted_classes: [Symbol], symbolize_names: true
+        unless options[:force_scan]
+          flunk "Brakeman cannot be run in tests without force_scan: true. Please set it in config/brakeman.yml."
+        end
       end
     end
 
