@@ -39,6 +39,10 @@ module RubyLsp
         with_server do |server, uri|
           server.process_message(
             id: 1,
+            method: "initialized",
+          )
+          server.process_message(
+            id: 2,
             method: "workspace/didChangeWatchedFiles",
             params: { changes: [ { uri: URI::File.build(path: tf.path).to_s, type: Constant::FileChangeType::CREATED } ] }
           )
