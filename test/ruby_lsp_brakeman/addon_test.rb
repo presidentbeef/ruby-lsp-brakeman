@@ -5,7 +5,7 @@ require "test_helper"
 module RubyLsp
   module BrakemanLsp
     class TestDefinition < Minitest::Test
-      def test_publich_diagnostic
+      def test_publish_diagnostic
         diagnostics = generate_diagnostics_for_source(<<~'RUBY', { line: 2, character: 1 })
           class SomeController < ApplicationController
             def index
