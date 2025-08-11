@@ -40,7 +40,7 @@ module RubyLsp
           return
         end
 
-        Thread.new do
+        @thread = Thread.new do
           @brakeman = Brakeman.run(app_path: global_state.workspace_path, support_rescanning: true)
 
           notify("Initial Brakeman scan complete - #{@brakeman.filtered_warnings.length} warnings found")
@@ -167,6 +167,7 @@ module RubyLsp
       end
 
       def deactivate
+        @thread&.terminate
       end
 
       # Returns the name of the addon
