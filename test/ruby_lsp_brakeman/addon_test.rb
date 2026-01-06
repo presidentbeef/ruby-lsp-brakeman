@@ -22,6 +22,7 @@ module RubyLsp
         assert_equal(2, diagnostic.range.end.line)
         assert_equal(1000, diagnostic.range.end.character)
         assert_equal(Constant::DiagnosticSeverity::ERROR, diagnostic.severity)
+        assert_equal(0, diagnostic.code)
         assert_equal('https://brakemanscanner.org/docs/warning_types/sql_injection/', diagnostic.code_description.href)
         assert_equal('Brakeman', diagnostic.source)
         assert_equal(<<~'MESSAGE'.chomp, diagnostic.message)

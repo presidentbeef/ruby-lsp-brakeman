@@ -150,7 +150,7 @@ module RubyLsp
               character: 1000, # "End of line"
             ),
           ),
-          code: warning.code,
+          code: warning.warning_code,
           code_description: Interface::CodeDescription.new(href: warning.link) # Does not work in VSCode?
         )
       end
