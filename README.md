@@ -37,6 +37,14 @@ Note that scans are asynchronous and only one scan will run at a time. If multip
 
  <img width="1159" alt="Queuing, scanning, reported changes" src="https://github.com/user-attachments/assets/5898495d-0ffb-4a15-860a-f45d1ea1ad58" />
 
+## Editors
+
+* VSCode - Should work out of the box
+* Zed - Works when [Ruby LSP is configured to run](https://zed.dev/docs/languages/ruby#setting-up-ruby-lsp)
+* Helix - Current *not* working
+
+(Feel free to test and extend this list!)
+
 ## Limitations
 
 * Column numbers are not available right now, so the entire line is always reported
@@ -44,7 +52,7 @@ Note that scans are asynchronous and only one scan will run at a time. If multip
 * Large applications may require way too much memory for incremental scans to be useful
 * Warnings may not clear if Ruby LSP crashes
 * VS Code does not seem to support `CodeDescription` which can link to more information
-* No tests yet, so buyer beware
+* Not many tests yet, so buyer beware
 
 ## License
 
