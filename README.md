@@ -2,7 +2,7 @@
 
 This library enables running [Brakeman](https://brakemanscanner.org/) via [Ruby LSP](https://shopify.github.io/ruby-lsp/).
 
-The library is in early but working stages. It has only been tested with VS Code so far.
+The library is in early but working stages.
 
 ## Installation
 
